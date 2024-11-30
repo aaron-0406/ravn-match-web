@@ -15,7 +15,6 @@ import { PageLayout } from "./components/PageLayout";
 import { CardsEmptyState } from "./components/CardsEmptyState/CardsEmptyState";
 
 const Home = () => {
-  //TODO: If we got some spare time we could implement the label styling on the ThemeProvider
   const handleClear = () => 0;
   const handleShowMatches = () => 0;
 
