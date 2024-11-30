@@ -15,7 +15,7 @@ export type RecommendationCardProps = {
   image: string;
   name: string;
   english: "basic" | "intermediate" | "proficient" | "advanced";
-  techStack: Record<string, "junior" | "mid" | "senior">;
+  techStack: Array<{ stack: string; seniority: string }>;
   topics: string[];
   aoScore: number;
   teamScore: number;
@@ -54,16 +54,16 @@ export const RecommendationCard = (props: RecommendationCardProps) => {
           </Group>
           <Group gap={12}>
             <Badge
-              w={32}
+              w={72}
               h={32}
               variant="light"
               size="md"
               color="green"
               radius="xs"
             >
-              {aoScore}
+              {(aoScore * 100).toFixed(2) + "%"}
             </Badge>
-            <Badge
+            {/* <Badge
               w={32}
               h={32}
               variant="light"
@@ -72,7 +72,7 @@ export const RecommendationCard = (props: RecommendationCardProps) => {
               radius="xs"
             >
               {teamScore}
-            </Badge>
+            </Badge> */}
           </Group>
         </Group>
         <Group gap={8}>
@@ -87,15 +87,9 @@ export const RecommendationCard = (props: RecommendationCardProps) => {
           ))}
         </Group>
         <TechRow name="English" value={english} />
-        {Object.keys(techStack)
-          .slice(0, 3)
-          .map((stack, index) => (
-            <TechRow
-              key={stack + index}
-              name={stack}
-              value={techStack[stack]}
-            />
-          ))}
+        {techStack.map((stack, index) => (
+          <TechRow key={index} name={stack.stack} value={stack.seniority} />
+        ))}
         <TechRow name="Hour Rate" value={`$${hourRate}`} />
         <Stack gap={8} h="100%" mt="auto" justify="end">
           <Button variant="default">View more</Button>

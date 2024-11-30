@@ -13,9 +13,9 @@ import {
 } from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 import { DateInput } from "@mantine/dates";
-import { useQuery } from "react-query";
+import { useQuery, useMutation } from "react-query";
 import { PageLayout } from "./components/PageLayout";
-import { FormProvider, useForm, Controller } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { CardsEmptyState } from "./components/CardsEmptyState/CardsEmptyState";
 import { getListTopics } from "./shared/services/topics.service";
 import { getListTechStacks } from "./shared/services/tech-stacks.service";
@@ -23,92 +23,9 @@ import { HomeTypeResolver } from "./Home.yup";
 
 import { RecommendationCard } from "./components/RecommendationCard";
 import { RecommendationCardProps } from "./components/RecommendationCard/RecommendationCard";
+import { getListTeamMembers } from "./shared/services/team-member.service";
 
-const recommendations: RecommendationCardProps[] = [
-  {
-    image: "https://ca.slack-edge.com/T7LE1KVBL-U061TGY0C1Y-3540f8312975-512",
-    name: "Alice Johnson",
-    english: "advanced",
-    techStack: {
-      React: "senior",
-      NodeJS: "mid",
-      Python: "junior",
-    },
-    topics: ["Web Development", "UI/UX Design", "Agile"],
-    aoScore: 9.2,
-    teamScore: 8.8,
-    needsVisibility: true,
-    hourRate: 75,
-  },
-  {
-    name: "Brayan Vera Vera Vera Vera Vera Vera",
-    english: "advanced",
-    aoScore: 5,
-    teamScore: 5,
-    topics: ["CRM", "PROJECT MIGRATION", "CMS", "BIG TEAMS"],
-    techStack: { React: "senior", NextJS: "mid" },
-    hourRate: 18,
-    image:
-      "https://s3-alpha-sig.figma.com/img/9d01/83af/c322debcf9d03f65910717c58d7c6fe0?Expires=1733702400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=UluUu6s1obEOluo6rSdA9Ym4iTqkJT-M-JnqYzw3ZyMNmhI6WdF0T4xD5Ph4LXA6QxYTCobz-vKxpYln-7ugj-S62PKW0F10OrwHfiKTOixM0z2R~JVsCdCCizdwoThENP1~Q7L04AHP7owrjkZ~vMP8ebOWuvCRAQNf9AOXkNEycCQMeEClfHbzoLHCmJe17mdeY3Zm8Jjk3-nI3Hrvpr1Hr5fVPjzVwmp~WVUV~9AMnHyKCNv639MLZ3BROEwBYrY7~WnT~r9VnSHzJJkPlHyZhesPDxKbrNx6l4rO~uTCvMev0XWPauoCMtLySAsR4hb1h4VUj-YTMSKdIDHfqw__",
-  },
-  {
-    image: "https://ca.slack-edge.com/T7LE1KVBL-U039Y082Z40-9b05584e2055-512",
-    name: "Bob Smith",
-    english: "intermediate",
-    techStack: {
-      Java: "mid",
-      Spring: "junior",
-      Kubernetes: "junior",
-    },
-    topics: ["Backend Development", "DevOps", "Cloud Computing"],
-    aoScore: 8.5,
-    teamScore: 7.9,
-    hourRate: 60,
-  },
-  {
-    image: "https://ca.slack-edge.com/T7LE1KVBL-U037GMW90RL-95b4e9c08ea6-512",
-    name: "Catherine Lee",
-    english: "proficient",
-    techStack: {
-      Angular: "senior",
-      TypeScript: "mid",
-      Firebase: "junior",
-    },
-    topics: ["Frontend Development", "State Management", "Testing"],
-    aoScore: 9.0,
-    teamScore: 8.7,
-    hourRate: 70,
-  },
-  {
-    image: "https://via.placeholder.com/150",
-    name: "David Wong",
-    english: "basic",
-    techStack: {
-      PHP: "mid",
-      Laravel: "mid",
-      MySQL: "senior",
-    },
-    topics: ["Web Development", "Database Management", "CMS"],
-    aoScore: 7.8,
-    teamScore: 8.2,
-    hourRate: 50,
-  },
-  {
-    image: "https://via.placeholder.com/150",
-    name: "Emily Brown",
-    english: "advanced",
-    techStack: {
-      Python: "senior",
-      TensorFlow: "mid",
-      Pandas: "mid",
-    },
-    topics: ["Data Science", "Machine Learning", "Data Visualization"],
-    aoScore: 9.5,
-    teamScore: 9.0,
-    needsVisibility: false,
-    hourRate: 100,
-  },
-];
+let recommendations: RecommendationCardProps[] = [];
 
 const Home = () => {
   const formMethods = useForm({
@@ -127,11 +44,43 @@ const Home = () => {
 
   const handleClear = () => {
     reset();
+    recommendations = [];
   };
+
+  const { mutate } = useMutation(
+    ({ techStacks, topics, seniority, englishLevel }: any) =>
+      getListTeamMembers(techStacks, topics, seniority, englishLevel),
+    {
+      onSuccess: (data) => {
+        data.data.forEach((item: any) => {
+          recommendations.push({
+            image: "https://via.placeholder.com/150",
+            name: item.name,
+            english: item.english_level,
+            techStack: item.tags_to_team_members.map((tag: any) => {
+              return {
+                stack: tag.tags.name,
+                seniority: tag.seniority,
+              };
+            }),
+            topics: [],
+            aoScore: item.score,
+            teamScore: 10.1,
+            hourRate: 50,
+          });
+        });
+      },
+    }
+  );
 
   const handleShowMatches = () => {
     const values = watch();
-    console.log("Form Values: ", values);
+    mutate({
+      techStacks: values.techStacks ?? [],
+      topics: values.topics ?? [],
+      seniority: values.seniority ?? "MID",
+      englishLevel: values.englishLevel ?? "PROFICIENT",
+    });
   };
 
   const { data: dataTopics } = useQuery(
@@ -301,32 +250,35 @@ const Home = () => {
               View candidate list
             </Button>
           </Group>
-          <Carousel
-            slideGap="20"
-            align="center"
-            maw={833}
-            w={833}
-            controlSize={32}
-            containScroll="trimSnaps"
-            slideSize="33.333333%"
-            styles={{
-              control: {
-                transform: "translateY(-52px)",
-              },
-            }}
-          >
-            {recommendations.map((recommendation, index) => (
-              <Carousel.Slide key={index}>
-                <RecommendationCard
-                  key={recommendation.name + index}
-                  {...recommendation}
-                />
-              </Carousel.Slide>
-            ))}
-          </Carousel>
-        </Stack>
 
-        {!recommendations.length ? <CardsEmptyState /> : null}
+          {!recommendations.length ? (
+            <CardsEmptyState />
+          ) : (
+            <Carousel
+              slideGap="20"
+              align="center"
+              maw={833}
+              w={833}
+              controlSize={32}
+              containScroll="trimSnaps"
+              slideSize="33.333333%"
+              styles={{
+                control: {
+                  transform: "translateY(-52px)",
+                },
+              }}
+            >
+              {recommendations.map((recommendation, index) => (
+                <Carousel.Slide key={index}>
+                  <RecommendationCard
+                    key={recommendation.name + index}
+                    {...recommendation}
+                  />
+                </Carousel.Slide>
+              ))}
+            </Carousel>
+          )}
+        </Stack>
       </Flex>
     </PageLayout>
   );
