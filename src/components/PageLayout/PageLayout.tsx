@@ -6,17 +6,7 @@ import { ReactNode } from "react";
 export const PageLayout = (props: PageLayoutProps) => {
   const { children } = props;
   return (
-    <AppShell
-      // header={{ height: 60 }}
-      // navbar={{
-      //   width: 300,
-      //   breakpoint: "sm",
-      // }}
-
-      padding="md"
-    >
-      {/* <Image src="src/assets/background.png" /> */}
-
+    <AppShell px={104} py={130}>
       <BackgroundImage
         src="src/assets/background.png"
         style={{
@@ -26,18 +16,11 @@ export const PageLayout = (props: PageLayoutProps) => {
           top: 0,
           left: 0,
           zIndex: -1,
-          backgroundColor: "",
         }}
         radius={0}
       />
-      {/* <Container
-        style={{ backgroundColor: "#fff", position: "fixed", zIndex: -2 }}
-        fluid
-        w="100%"
-        h="100%"
-      > */}
+
       {children}
-      {/* </Container> */}
     </AppShell>
   );
 };
