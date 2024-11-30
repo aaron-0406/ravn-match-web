@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import Home from "./Home";
 import "@mantine/core/styles.css";
 import { createTheme, MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "react-query";
 
 const themeOverride = createTheme({
   primaryColor: "grape",
@@ -23,14 +24,27 @@ const themeOverride = createTheme({
   },
 });
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+      retry: false,
+      staleTime: 5000,
+    },
+  },
+});
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>
-      <MantineProvider theme={themeOverride}>
-        <Routes>
-          <Route index element={<Home />} />
-        </Routes>
-      </MantineProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <MantineProvider theme={themeOverride}>
+          <Routes>
+            <Route index element={<Home />} />
+          </Routes>
+        </MantineProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   </StrictMode>
 );

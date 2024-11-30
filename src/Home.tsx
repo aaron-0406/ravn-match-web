@@ -11,12 +11,45 @@ import {
   Title,
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
+import { useQuery } from "react-query";
 import { PageLayout } from "./components/PageLayout";
 import { CardsEmptyState } from "./components/CardsEmptyState/CardsEmptyState";
+import { getListTopics } from "./shared/services/topics.service";
+import { getListTechStacks } from "./shared/services/tech-stacks.service";
 
 const Home = () => {
   const handleClear = () => 0;
   const handleShowMatches = () => 0;
+
+  const { data: dataTopics } = useQuery(
+    "key-topic",
+    async () => {
+      return await getListTopics();
+    },
+    {
+      onError: (error: any) => {
+        console.log(error);
+      },
+    }
+  );
+
+  const { data: dataTechStacks } = useQuery(
+    "key-tech-stacks",
+    async () => {
+      return await getListTechStacks();
+    },
+    {
+      onError: (error: any) => {
+        console.log(error);
+      },
+    }
+  );
+
+  const topics =
+    dataTopics?.data.map((item: { name: string }) => item.name) ?? [];
+
+  const techStacks =
+    dataTechStacks?.data.map((item: { name: string }) => item.name) ?? [];
 
   return (
     <PageLayout>
@@ -34,11 +67,17 @@ const Home = () => {
                 placeholder="Enter tech stacks"
                 label="Tech Stacks"
                 size="md"
+                data={techStacks}
               />
             </Stack>
 
             <Stack gap={4}>
-              <TagsInput placeholder="Enter topics" size="md" label="Topics" />
+              <TagsInput
+                placeholder="Enter topics"
+                size="md"
+                label="Topics"
+                data={topics}
+              />
               <Text c="#868E96" size="sm">
                 E.g. Bank, Health, Big Team
               </Text>
@@ -51,7 +90,14 @@ const Home = () => {
               <Select
                 size="md"
                 placeholder="Select"
-                data={["React", "Angular", "Vue", "Svelte"]}
+                data={[
+                  "TRAINEE",
+                  "JUNIOR",
+                  "JUNIOR_MID",
+                  "MID",
+                  "MID_SENIOR",
+                  "SENIOR",
+                ]}
               />
               <Checkbox mt={4} c="#868E96" label="Set as priority" />
             </Stack>
@@ -63,7 +109,7 @@ const Home = () => {
               <Select
                 size="md"
                 placeholder="Select"
-                data={["React", "Angular", "Vue", "Svelte"]}
+                data={["BASIC", "PROFICIENT", "ADVANCED"]}
               />
               <Checkbox mt={4} c="#868E96" label="Set as priority" />
             </Stack>
