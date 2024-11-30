@@ -33,7 +33,6 @@ export const RecommendationCard = (props: RecommendationCardProps) => {
     techStack,
     topics,
     aoScore,
-    teamScore,
     needsVisibility = false,
     hourRate,
   } = props;
