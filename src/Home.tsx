@@ -15,9 +15,11 @@ import { Carousel } from "@mantine/carousel";
 import { DateInput } from "@mantine/dates";
 import { useQuery } from "react-query";
 import { PageLayout } from "./components/PageLayout";
+import { FormProvider, useForm, Controller } from "react-hook-form";
 import { CardsEmptyState } from "./components/CardsEmptyState/CardsEmptyState";
 import { getListTopics } from "./shared/services/topics.service";
 import { getListTechStacks } from "./shared/services/tech-stacks.service";
+import { HomeTypeResolver } from "./Home.yup";
 
 import { RecommendationCard } from "./components/RecommendationCard";
 import { RecommendationCardProps } from "./components/RecommendationCard/RecommendationCard";
@@ -109,8 +111,28 @@ const recommendations: RecommendationCardProps[] = [
 ];
 
 const Home = () => {
-  const handleClear = () => 0;
-  const handleShowMatches = () => 0;
+  const formMethods = useForm({
+    resolver: HomeTypeResolver,
+    mode: "all",
+    defaultValues: {
+      techStacks: [],
+      topics: [],
+      seniority: "MID",
+      englishLevel: "PROFICIENT",
+      startDate: new Date(),
+    },
+  });
+
+  const { control, watch, reset } = formMethods;
+
+  const handleClear = () => {
+    reset();
+  };
+
+  const handleShowMatches = () => {
+    const values = watch();
+    console.log("Form Values: ", values);
+  };
 
   const { data: dataTopics } = useQuery(
     "key-topic",
@@ -137,10 +159,16 @@ const Home = () => {
   );
 
   const topics =
-    dataTopics?.data.map((item: { name: string }) => item.name) ?? [];
+    dataTopics?.data.map((item: { id: string; name: string }) => ({
+      value: String(item.id),
+      label: item.name,
+    })) ?? [];
 
   const techStacks =
-    dataTechStacks?.data.map((item: { name: string }) => item.name) ?? [];
+    dataTechStacks?.data.map((item: { id: string; name: string }) => ({
+      value: String(item.id),
+      label: item.name,
+    })) ?? [];
 
   return (
     <PageLayout>
@@ -154,20 +182,34 @@ const Home = () => {
           </Stack>
           <Stack gap={16}>
             <Stack gap={4}>
-              <TagsInput
-                placeholder="Enter tech stacks"
-                label="Tech Stacks"
-                size="md"
-                data={techStacks}
+              <Controller
+                name="techStacks"
+                control={control}
+                render={({ field }) => (
+                  <TagsInput
+                    placeholder="Enter tech stacks"
+                    label="Tech Stacks"
+                    size="md"
+                    data={techStacks}
+                    {...field}
+                  />
+                )}
               />
             </Stack>
 
             <Stack gap={4}>
-              <TagsInput
-                placeholder="Enter topics"
-                size="md"
-                label="Topics"
-                data={topics}
+              <Controller
+                name="topics"
+                control={control}
+                render={({ field }) => (
+                  <TagsInput
+                    placeholder="Enter topics"
+                    label="Topics"
+                    size="md"
+                    data={topics}
+                    {...field}
+                  />
+                )}
               />
               <Text c="#868E96" size="sm">
                 E.g. Bank, Health, Big Team
@@ -178,17 +220,24 @@ const Home = () => {
               <Text size="md" style={{ fontWeight: 600 }}>
                 Seniority
               </Text>
-              <Select
-                size="md"
-                placeholder="Select"
-                data={[
-                  "TRAINEE",
-                  "JUNIOR",
-                  "JUNIOR_MID",
-                  "MID",
-                  "MID_SENIOR",
-                  "SENIOR",
-                ]}
+              <Controller
+                name="seniority"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    size="md"
+                    placeholder="Select"
+                    data={[
+                      "TRAINEE",
+                      "JUNIOR",
+                      "JUNIOR_MID",
+                      "MID",
+                      "MID_SENIOR",
+                      "SENIOR",
+                    ]}
+                    {...field}
+                  />
+                )}
               />
               <Checkbox mt={4} c="#868E96" label="Set as priority" />
             </Stack>
@@ -197,10 +246,17 @@ const Home = () => {
               <Text size="md" style={{ fontWeight: 600 }}>
                 English Level
               </Text>
-              <Select
-                size="md"
-                placeholder="Select"
-                data={["BASIC", "PROFICIENT", "ADVANCED"]}
+              <Controller
+                name="englishLevel"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    size="md"
+                    placeholder="Select"
+                    data={["BASIC", "PROFICIENT", "ADVANCED"]}
+                    {...field}
+                  />
+                )}
               />
               <Checkbox mt={4} c="#868E96" label="Set as priority" />
             </Stack>
@@ -233,6 +289,7 @@ const Home = () => {
             </Button>
           </Flex>
         </Card>
+
         <Stack>
           <Group justify="space-between">
             <Title order={3}>Your top recommendations</Title>
@@ -259,7 +316,7 @@ const Home = () => {
             }}
           >
             {recommendations.map((recommendation, index) => (
-              <Carousel.Slide>
+              <Carousel.Slide key={index}>
                 <RecommendationCard
                   key={recommendation.name + index}
                   {...recommendation}
@@ -268,6 +325,8 @@ const Home = () => {
             ))}
           </Carousel>
         </Stack>
+
+        {!recommendations.length ? <CardsEmptyState /> : null}
       </Flex>
     </PageLayout>
   );
