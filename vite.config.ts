@@ -5,11 +5,13 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true, // Allows access from remote IPs
-    port: 5173, // Your port
-    hmr: {
-      host: '18.206.133.13', // The public IP or domain
-      port: 5173,            // Match the port your Vite server is running on
+    proxy: {
+      '/ws': {
+        target: 'ws://18.206.133.13:5173',
+        ws: true, // Indica que es una conexión WebSocket
+      },
     },
+    host: true,
+    port: 5173,
   },
 })
